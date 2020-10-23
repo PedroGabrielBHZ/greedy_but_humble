@@ -1,6 +1,9 @@
 #include <iostream>
+#include <cstdlib>
 #include <fstream>
 #include <vector>
+#include <string>
+#include <time.h>
 
 using namespace std;
 
@@ -23,12 +26,32 @@ void display_vector(vector<Job> j)
     cout << endl;    
 }
 
-int main(int argc, char const *argv[])
+void generate_file_with_n_random_pairs_lq_r(string filepath, int n, int r)
 {
-    vector<Job> j;
+    ofstream iFile;
 
+    iFile.open(filepath);
+    if(!iFile)
+    {
+        cout << "Something went wrong, aborting!\n";
+        exit(1);
+    } else
+    {
+        for (int i = 0; i < n; i++)
+        {
+            int rd1(rand()%r), rd2(rd1 + rand()%r);
+            iFile << rd1 << " " << rd2 << endl;
+        }
+    }
+    iFile.close();
+}
+
+void read_jobs_from_file_to_vector(string filepath, vector<Job> &j)
+{
     fstream iFile;
-    iFile.open(argv[1]);
+    
+    iFile.open(filepath);
+
     if(!iFile)
     {
         cout << "Something went wrong, aborting!\n";
@@ -42,10 +65,24 @@ int main(int argc, char const *argv[])
             j.push_back(in_j);
         }
     }
+
+    iFile.close();
+}
+
+int main(int argc, char const *argv[])
+{
+    srand(time(NULL));
+
+    vector<Job> j;
+    int n;
+
+    cout << "Enter number of jobs: ";
+    cin >> n;
+
+    generate_file_with_n_random_pairs_lq_r("temp.txt", n , n);
+    read_jobs_from_file_to_vector("temp.txt", j);
     
-    display_vector(j);
     sort(j.begin(), j.end(), finish_time_comparator);
-    display_vector(j);
 
     vector<Job> selected_jobs;
     selected_jobs.push_back(j[0]);
@@ -60,7 +97,16 @@ int main(int argc, char const *argv[])
         }
     }
 
-    display_vector(selected_jobs);
+    float a = static_cast<float>(j.size()) - 1;
+    float b = static_cast<float>(selected_jobs.size());
+
+
+    cout << "From a total of " << a << " requests, "
+         << b << " were accepted.\n" 
+         << "That's around " << ((b/a)*100)
+         << "% of the requests.\n";
+
+    remove("temp.txt");
 
     return 0;
 }
